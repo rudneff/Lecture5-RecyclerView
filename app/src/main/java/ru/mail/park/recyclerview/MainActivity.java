@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -31,11 +32,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(new RecyclerView.Adapter() {
             @Override
             public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-                if (viewType == 1) {
-                    return new ItemViewHolder(
-                            getLayoutInflater().inflate(R.layout.test2, parent, false)
-                    );
-                }
+
                 return new ItemViewHolder(
                         getLayoutInflater().inflate(R.layout.test, parent, false)
                 );
@@ -51,19 +48,29 @@ public class MainActivity extends AppCompatActivity {
             public int getItemCount() {
                 return dataSource.getCount();
             }
-
-            @Override
-            public int getItemViewType(int position) {
-                return position == 1 ? 1 : 2;
-            }
         });
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        final GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 3);
+        gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                int opt = position % 7;
+                if(opt == 1 || opt == 5 || opt == 6) {
+                    return 3;
+                }
+                else {
+                    return 1;
+                }
+            }
+        });
 
         findViewById(R.id.add).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 dataSource.addItem(generateItem());
+                recyclerView.getAdapter().notifyItemInserted(dataSource.getCount() - 1);
             }
         });
 
@@ -71,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 dataSource.removeFirst();
+                recyclerView.getAdapter().notifyItemRemoved(0);
             }
         });
 
@@ -92,6 +100,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 recyclerView.setLayoutManager(new GridLayoutManager(MainActivity.this, 3));
+            }
+        });
+
+        findViewById(R.id.grid2).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                recyclerView.setLayoutManager(new StaggeredGridLayoutManager(4, StaggeredGridLayoutManager.VERTICAL));
+            }
+        });
+
+        findViewById(R.id.grid3).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                recyclerView.setLayoutManager(gridLayoutManager);
             }
         });
     }
@@ -133,13 +155,11 @@ public class MainActivity extends AppCompatActivity {
 
         public void addItem(Item item) {
             items.add(item);
-            recyclerView.getAdapter().notifyItemInserted(items.size() - 1);
         }
 
         public void removeFirst() {
             if (!items.isEmpty()) {
                 items.remove(0);
-                recyclerView.getAdapter().notifyItemRemoved(0);
             }
         }
 
